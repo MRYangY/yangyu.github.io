@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: http://yangyu.github.io/sitemap.xml
+Sitemap: https://yangyu.github.io/sitemap.xml
