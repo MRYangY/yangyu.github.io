@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: http://rainyang.me/sitemap.xml
+Sitemap: https://rainyang.me/sitemap.xml
