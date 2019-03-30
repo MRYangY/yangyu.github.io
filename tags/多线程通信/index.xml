@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>多线程通信 on RainYang&#39;s Blog</title>
-    <link>https://yangyu.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/</link>
+    <link>https://mryangy.github.io/yangyu.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/</link>
     <description>Recent content in 多线程通信 on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Thu, 28 Mar 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://yangyu.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://mryangy.github.io/yangyu.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>EventBus使用</title>
-      <link>https://yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</link>
+      <link>https://mryangy.github.io/yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</link>
       <pubDate>Thu, 28 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
+      <guid>https://mryangy.github.io/yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
       <description>EventBus使用 概述 关于 EventBus 在开发中经常会选择使用它来进行模块间通信、解耦。平常使用这个库只是很浅显的操作三部曲，register，pos</description>
     </item>
     
