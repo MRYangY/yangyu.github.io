@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>RainYang&#39;s Blog</title>
-    <link>https://mryangy.github.io/yangyu.github.io/</link>
+    <link>https://rainyang.me/</link>
     <description>Recent content on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 30 Mar 2019 10:32:19 +0800</lastBuildDate>
     
-	<atom:link href="https://mryangy.github.io/yangyu.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://rainyang.me/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>About</title>
-      <link>https://mryangy.github.io/yangyu.github.io/about/</link>
+      <link>https://rainyang.me/about/</link>
       <pubDate>Sat, 30 Mar 2019 10:32:19 +0800</pubDate>
       
-      <guid>https://mryangy.github.io/yangyu.github.io/about/</guid>
+      <guid>https://rainyang.me/about/</guid>
       <description>关于本人 3年工作经验的移动端软件开发工程师，目前主要负责视频方面的功能开发。 喜欢开源，终身学习！热爱篮球！ GitHub :https://github.com/MRYangY CSDN博客：https://</description>
     </item>
     
     <item>
       <title>EventBus使用</title>
-      <link>https://mryangy.github.io/yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</link>
+      <link>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</link>
       <pubDate>Thu, 28 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://mryangy.github.io/yangyu.github.io/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
+      <guid>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
       <description>EventBus使用 概述 关于 EventBus 在开发中经常会选择使用它来进行模块间通信、解耦。平常使用这个库只是很浅显的操作三部曲，register，pos</description>
     </item>
     
