@@ -1,71 +1,71 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<?xml-stylesheet type="text/xsl" href="https://rainyang.me/sitemap.xsl"?>
+<?xml-stylesheet type="text/xsl" href="http://rainyang.me/sitemap.xsl"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://rainyang.me/about/</loc>
+    <loc>http://rainyang.me/about/</loc>
     <lastmod>2019-03-30T10:32:19+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</loc>
+    <loc>http://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/categories/</loc>
+    <loc>http://rainyang.me/categories/</loc>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/tags/eventbus/</loc>
+    <loc>http://rainyang.me/tags/eventbus/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/categories/eventbus/</loc>
+    <loc>http://rainyang.me/categories/eventbus/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/post/</loc>
+    <loc>http://rainyang.me/post/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/</loc>
+    <loc>http://rainyang.me/</loc>
     <lastmod>2019-03-30T10:32:19+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/tags/</loc>
+    <loc>http://rainyang.me/tags/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/tags/%E8%A7%A3%E8%80%A6/</loc>
+    <loc>http://rainyang.me/tags/%E8%A7%A3%E8%80%A6/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://rainyang.me/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/</loc>
+    <loc>http://rainyang.me/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/</loc>
     <lastmod>2019-03-28T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>

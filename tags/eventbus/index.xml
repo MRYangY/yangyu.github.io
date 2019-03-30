@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>EventBus on RainYang&#39;s Blog</title>
-    <link>https://rainyang.me/tags/eventbus/</link>
+    <link>http://rainyang.me/tags/eventbus/</link>
     <description>Recent content in EventBus on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Thu, 28 Mar 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://rainyang.me/tags/eventbus/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://rainyang.me/tags/eventbus/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>EventBus使用</title>
-      <link>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</link>
+      <link>http://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</link>
       <pubDate>Thu, 28 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
+      <guid>http://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</guid>
       <description>EventBus使用 概述 关于 EventBus 在开发中经常会选择使用它来进行模块间通信、解耦。平常使用这个库只是很浅显的操作三部曲，register，pos</description>
     </item>
     
