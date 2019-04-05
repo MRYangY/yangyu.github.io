@@ -21,6 +21,15 @@
     </item>
     
     <item>
+      <title>ArrayList 源码分析——基于最新Android9.0源码</title>
+      <link>https://rainyang.me/post/arraylist_anayle/</link>
+      <pubDate>Fri, 05 Apr 2019 15:16:34 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/arraylist_anayle/</guid>
+      <description>ArrayList 源码分析——基于最新Android9.0源码 前言 ArrayList 既是开发人员在日常开发过程中经常会用到的数据处理容器，也是面试场景中经常会被问到的点。包</description>
+    </item>
+    
+    <item>
       <title>EventBus使用</title>
       <link>https://rainyang.me/post/eventbus%E4%BD%BF%E7%94%A8/</link>
       <pubDate>Thu, 28 Mar 2019 00:00:00 +0000</pubDate>
