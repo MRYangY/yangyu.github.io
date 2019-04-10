@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Eventbus_源码分析 - RainYang&#39;s Blog</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="     &#34;宇宝守护神（rainyang）&#34;" /><meta name="description" content="上一篇文章对**EventBus**进行了一个介绍，并且对它的使用方式作了一个较全面的分析，建议在阅读本文之前，先看看上篇文章的内容：[EventBus使用（全面分析，细节提醒）](https://blog.csdn.net/qq_34902522/article/details/84890474)
+本篇文章主要内容是对EventBus的源码进行分析，看看它到底内部是用了什么方式，来实现事件传递，达到如此强大的效果。同是通过对其源码的分析，有助于加深对EventBus的理解使用，让我们以后在开发过程中更加合适的使用它。" /><meta name="keywords" content="Hugo, theme, even" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.54.0 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://rainyang.me/post/eventbus_%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<link href="/dist/even.c2a46f00.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="Eventbus_源码分析" />
+<meta property="og:description" content="上一篇文章对**EventBus**进行了一个介绍，并且对它的使用方式作了一个较全面的分析，建议在阅读本文之前，先看看上篇文章的内容：[EventBus使用（全面分析，细节提醒）](https://blog.csdn.net/qq_34902522/article/details/84890474)
+本篇文章主要内容是对EventBus的源码进行分析，看看它到底内部是用了什么方式，来实现事件传递，达到如此强大的效果。同是通过对其源码的分析，有助于加深对EventBus的理解使用，让我们以后在开发过程中更加合适的使用它。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://rainyang.me/post/eventbus_%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" />
+<meta property="article:published_time" content="2019-04-10T21:06:50&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-10T21:06:50&#43;08:00"/>
+
+<meta itemprop="name" content="Eventbus_源码分析">
+<meta itemprop="description" content="上一篇文章对**EventBus**进行了一个介绍，并且对它的使用方式作了一个较全面的分析，建议在阅读本文之前，先看看上篇文章的内容：[EventBus使用（全面分析，细节提醒）](https://blog.csdn.net/qq_34902522/article/details/84890474)
+本篇文章主要内容是对EventBus的源码进行分析，看看它到底内部是用了什么方式，来实现事件传递，达到如此强大的效果。同是通过对其源码的分析，有助于加深对EventBus的理解使用，让我们以后在开发过程中更加合适的使用它。">
+
+
+<meta itemprop="datePublished" content="2019-04-10T21:06:50&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-10T21:06:50&#43;08:00" />
+<meta itemprop="wordCount" content="9535">
+
+
+
+<meta itemprop="keywords" content="EventBus,多线程通信,“解耦”," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Eventbus_源码分析"/>
+<meta name="twitter:description" content="上一篇文章对**EventBus**进行了一个介绍，并且对它的使用方式作了一个较全面的分析，建议在阅读本文之前，先看看上篇文章的内容：[EventBus使用（全面分析，细节提醒）](https://blog.csdn.net/qq_34902522/article/details/84890474)
+本篇文章主要内容是对EventBus的源码进行分析，看看它到底内部是用了什么方式，来实现事件传递，达到如此强大的效果。同是通过对其源码的分析，有助于加深对EventBus的理解使用，让我们以后在开发过程中更加合适的使用它。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">RainYang</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">RainYang</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Eventbus_源码分析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-10 </span>
+        <div class="post-category">
+            <a href="/categories/eventbus/"> EventBus </a>
+            </div>
+          <span class="more-meta"> 9535 words </span>
+          <span class="more-meta"> 20 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#android-eventbus源码分析-基于最新3-1-1版本-看这一篇就够了">Android EventBus源码分析，基于最新3.1.1版本,看这一篇就够了！！</a>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#注册">注册</a></li>
+<li><a href="#post-event">Post Event</a></li>
+<li><a href="#unregister">unregister</a></li>
+<li><a href="#结语">结语</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      
+
+<h1 id="android-eventbus源码分析-基于最新3-1-1版本-看这一篇就够了">Android EventBus源码分析，基于最新3.1.1版本,看这一篇就够了！！</h1>
+
+<h2 id="前言">前言</h2>
+
+<p>上一篇文章对<strong>EventBus</strong>进行了一个介绍，并且对它的使用方式作了一个较全面的分析，建议在阅读本文之前，先看看上篇文章的内容：<a href="https://blog.csdn.net/qq_34902522/article/details/84890474">EventBus使用（全面分析，细节提醒）</a></p>
+
+<p>本篇文章主要内容是对EventBus的源码进行分析，看看它到底内部是用了什么方式，来实现事件传递，达到如此强大的效果。同是通过对其源码的分析，有助于加深对EventBus的理解使用，让我们以后在开发过程中更加合适的使用它。</p>
+
+<hr />
+
+<p>通过上篇文章的介绍，我们知道使用EventBus，主要的就是三个方面：</p>
+
+<ol>
+<li>订阅者（Subscriber）的register，unregister</li>
+<li>发布者（publisher）通过post，postSticky方法发送事件</li>
+<li>通过subscriber注解定义的方法来接收事件</li>
+</ol>
+
+<p>我们就通过这几方面进行，切入查看他的源码实现。</p>
+
+<h2 id="注册">注册</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">EventBus</span><span class="o">.</span><span class="na">getDefault</span><span class="o">().</span><span class="na">register</span><span class="o">(</span><span class="n">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">);</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们通过该语句来对Subscriber进行注册操作。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">static</span> <span class="n">EventBus</span> <span class="nf">getDefault</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">defaultInstance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kd">synchronized</span> <span class="o">(</span><span class="n">EventBus</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">defaultInstance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">defaultInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EventBus</span><span class="o">();</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">defaultInstance</span><span class="o">;</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>此部分代码块，很好理解，通过getDefault方法获取到EventBus的实例，可以看到它是通过双重校验锁的方式，获取到一个全局的实例，所以在各个组件中需要EventBus实例的地方，直接通过该方法就可以获取到，很是方便。保证了订阅者和发布者都是用的同一个实例。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="nf">EventBus</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">(</span><span class="n">DEFAULT_BUILDER</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">EventBus</span><span class="o">(</span><span class="n">EventBusBuilder</span> <span class="n">builder</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">getLogger</span><span class="o">();</span>
+        <span class="n">subscriptionsByEventType</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="n">typesBySubscriber</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="n">stickyEvents</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConcurrentHashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="n">mainThreadSupport</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">getMainThreadSupport</span><span class="o">();</span>
+        <span class="n">mainThreadPoster</span> <span class="o">=</span> <span class="n">mainThreadSupport</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="n">mainThreadSupport</span><span class="o">.</span><span class="na">createPoster</span><span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">:</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">backgroundPoster</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BackgroundPoster</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+        <span class="n">asyncPoster</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AsyncPoster</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+        <span class="n">indexCount</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">subscriberInfoIndexes</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="n">builder</span><span class="o">.</span><span class="na">subscriberInfoIndexes</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">:</span> <span class="n">0</span><span class="o">;</span>
+        <span class="n">subscriberMethodFinder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SubscriberMethodFinder</span><span class="o">(</span><span class="n">builder</span><span class="o">.</span><span class="na">subscriberInfoIndexes</span><span class="o">,</span>
+                <span class="n">builder</span><span class="o">.</span><span class="na">strictMethodVerification</span><span class="o">,</span> <span class="n">builder</span><span class="o">.</span><span class="na">ignoreGeneratedIndex</span><span class="o">);</span>
+        <span class="n">logSubscriberExceptions</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">logSubscriberExceptions</span><span class="o">;</span>
+        <span class="n">logNoSubscriberMessages</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">logNoSubscriberMessages</span><span class="o">;</span>
+        <span class="n">sendSubscriberExceptionEvent</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">sendSubscriberExceptionEvent</span><span class="o">;</span>
+        <span class="n">sendNoSubscriberEvent</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">sendNoSubscriberEvent</span><span class="o">;</span>
+        <span class="n">throwSubscriberException</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">throwSubscriberException</span><span class="o">;</span>
+        <span class="n">eventInheritance</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">eventInheritance</span><span class="o">;</span>
+        <span class="n">executorService</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">executorService</span><span class="o">;</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>EventBus的构造方法，有两个，但实际上来说，是一个。就算是调用无参的构造函数，它的内部还会调用EventBus(EventBusBuilder builder),这个构造函数。</p>
+
+<p>从上面的代码，我们知道EventBus的构造方式是通过Builder建造者模式实现的。在其有参数的构造方法中可以看到有一些对象的命令方式会可以大概猜出来这个变量会应用在哪些部分，大概有什么作用。（ps：在开发中命名规则是很重要的事情，一个好的命名方式，方便他人，也方便自己）</p>
+
+<p>举个栗子：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">CopyOnWriteArrayList</span><span class="o">&lt;</span><span class="n">Subscription</span><span class="o">&gt;&gt;</span> <span class="n">subscriptionsByEventType</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;&gt;</span> <span class="n">typesBySubscriber</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">stickyEvents</span><span class="o">;</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这三个容器类，通过他的命名方式，我们可以大致猜出些有用的内容。</p>
+
+<p>subscriptionsByEventType： 这是一个Map容器，key的类型是Class对象，value 是list容器，再结合命名方式，所以EventType应该是key，EventType是传递的事件类型，Subscription是新定义的类。。。巴拉巴拉。。等等。。要自然而然会想到一些可能的情况，这有助于接下来分析。</p>
+
+<p>再比如：mainThreadPoster，backgroundPoster，asyncPoster这几个变量的命名方式，就会让人不自由的联想到EventBus里面ThreadMode，有几种模式与这几个变量名很<strong><em>像</em></strong></p>
+
+<p>mainThreadPoster————&gt;ThreadMode.MAIN</p>
+
+<p>backgroundPoster———&gt;ThreadMode.BACKGROUND</p>
+
+<p>asyncPoster —————&gt;ThreadMode.ASYNC</p>
+
+<p>这样一相比较，那八九不离十，这其中有问题啊，而且他们都是以Poster结尾的，自然又会想到EventBus通过post方式来发送事件。。。</p>
+
+<p><img src="https://mryangy.github.io/yangyu.github.io/images/20190410/interessante.jpg" alt="在这里插入图片描述" /></p>
+
+<p>好了，说这么些废话，就是想表示看源码的<strong>揣测，蒙猜。。。</strong></p>
+
+<p>EventBus通过<strong>register(Object subscriber)</strong>来对Subscriber（订阅者）进行注册。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">register</span><span class="o">(</span><span class="n">Object</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span> <span class="o">=</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">subscriberMethodFinder</span><span class="o">.</span><span class="na">findSubscriberMethods</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">SubscriberMethod</span> <span class="n">subscriberMethod</span> <span class="o">:</span> <span class="n">subscriberMethods</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>主要看这行代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">subscriberMethodFinder</span><span class="o">.</span><span class="na">findSubscriberMethods</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这是通过subscriberMethodFinder对象，来找到加了Subscriber注解，接收事件的方法集合的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="nf">findSubscriberMethods</span><span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">METHOD_CACHE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethods</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">subscriberMethods</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">ignoreGeneratedIndex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">findUsingReflection</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">findUsingInfo</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethods</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Subscriber &#34;</span> <span class="o">+</span> <span class="n">subscriberClass</span>
+                    <span class="o">+</span> <span class="s">&#34; and its super classes have no public methods with the @Subscribe annotation&#34;</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">METHOD_CACHE</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">,</span> <span class="n">subscriberMethods</span><span class="o">);</span>
+            <span class="k">return</span> <span class="n">subscriberMethods</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>它会先从缓存中读是否有缓存，没有的话接着对ignoreGeneratedIndex进行判断，通过默认的方式获取Eventbus，注册订阅者的话，ignoreGeneratedIndex的值为false，所以这里的值是false。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="nf">findUsingInfo</span><span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">FindState</span> <span class="n">findState</span> <span class="o">=</span> <span class="n">prepareFindState</span><span class="o">();</span>
+        <span class="n">findState</span><span class="o">.</span><span class="na">initForSubscriber</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="k">while</span> <span class="o">(</span><span class="n">findState</span><span class="o">.</span><span class="na">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">findState</span><span class="o">.</span><span class="na">subscriberInfo</span> <span class="o">=</span> <span class="n">getSubscriberInfo</span><span class="o">(</span><span class="n">findState</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">findState</span><span class="o">.</span><span class="na">subscriberInfo</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">SubscriberMethod</span><span class="o">[]</span> <span class="n">array</span> <span class="o">=</span> <span class="n">findState</span><span class="o">.</span><span class="na">subscriberInfo</span><span class="o">.</span><span class="na">getSubscriberMethods</span><span class="o">();</span>
+                <span class="k">for</span> <span class="o">(</span><span class="n">SubscriberMethod</span> <span class="n">subscriberMethod</span> <span class="o">:</span> <span class="n">array</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">findState</span><span class="o">.</span><span class="na">checkAdd</span><span class="o">(</span><span class="n">subscriberMethod</span><span class="o">.</span><span class="na">method</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">.</span><span class="na">eventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="n">findState</span><span class="o">.</span><span class="na">subscriberMethods</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">subscriberMethod</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">findUsingReflectionInSingleClass</span><span class="o">(</span><span class="n">findState</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="n">findState</span><span class="o">.</span><span class="na">moveToSuperclass</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">getMethodsAndRelease</span><span class="o">(</span><span class="n">findState</span><span class="o">);</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这里先通过prepareFindState（）初始化一个FindState，FindState是什么？他可以理解成是帮助我们找到订阅方法集合的一个辅助类。（ps：订阅方法说的是Subscriber（订阅者）中，用@Subscriber注解修饰的方法，来接收事件消息的。）（pps：刚想说什么来着，忘了。。。）</p>
+
+<p>接着把Subscriber的class对象通过initForSubscriber传递进去，while循环条件成了，getSubscriberInfo（）返回null，不成立，会进入findUsingReflectionInSingleClass(findState);方法查找subscribeMethods。这两个条件的值，很好确定，篇幅有限就挑重点的说了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">findUsingReflectionInSingleClass</span><span class="o">(</span><span class="n">FindState</span> <span class="n">findState</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">Method</span><span class="o">[]</span> <span class="n">methods</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="c1">// This is faster than getMethods, especially when subscribers are fat classes like Activities
+</span><span class="c1"></span>            <span class="n">methods</span> <span class="o">=</span> <span class="n">findState</span><span class="o">.</span><span class="na">clazz</span><span class="o">.</span><span class="na">getDeclaredMethods</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">th</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// Workaround for java.lang.NoClassDefFoundError, see https://github.com/greenrobot/EventBus/issues/149
+</span><span class="c1"></span>            <span class="n">methods</span> <span class="o">=</span> <span class="n">findState</span><span class="o">.</span><span class="na">clazz</span><span class="o">.</span><span class="na">getMethods</span><span class="o">();</span>
+            <span class="n">findState</span><span class="o">.</span><span class="na">skipSuperClasses</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Method</span> <span class="n">method</span> <span class="o">:</span> <span class="n">methods</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">int</span> <span class="n">modifiers</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getModifiers</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">((</span><span class="n">modifiers</span> <span class="o">&amp;</span> <span class="n">Modifier</span><span class="o">.</span><span class="na">PUBLIC</span><span class="o">)</span> <span class="o">!=</span> <span class="n">0</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">modifiers</span> <span class="o">&amp;</span> <span class="n">MODIFIERS_IGNORE</span><span class="o">)</span> <span class="o">==</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">parameterTypes</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getParameterTypes</span><span class="o">();</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">parameterTypes</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="n">1</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">Subscribe</span> <span class="n">subscribeAnnotation</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getAnnotation</span><span class="o">(</span><span class="n">Subscribe</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">subscribeAnnotation</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span> <span class="o">=</span> <span class="n">parameterTypes</span><span class="o">[</span><span class="n">0</span><span class="o">];</span>
+                        <span class="k">if</span> <span class="o">(</span><span class="n">findState</span><span class="o">.</span><span class="na">checkAdd</span><span class="o">(</span><span class="n">method</span><span class="o">,</span> <span class="n">eventType</span><span class="o">))</span> <span class="o">{</span>
+                            <span class="n">ThreadMode</span> <span class="n">threadMode</span> <span class="o">=</span> <span class="n">subscribeAnnotation</span><span class="o">.</span><span class="na">threadMode</span><span class="o">();</span>
+                            <span class="n">findState</span><span class="o">.</span><span class="na">subscriberMethods</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">SubscriberMethod</span><span class="o">(</span><span class="n">method</span><span class="o">,</span> <span class="n">eventType</span><span class="o">,</span> <span class="n">threadMode</span><span class="o">,</span>
+                                    <span class="n">subscribeAnnotation</span><span class="o">.</span><span class="na">priority</span><span class="o">(),</span> <span class="n">subscribeAnnotation</span><span class="o">.</span><span class="na">sticky</span><span class="o">()));</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">strictMethodVerification</span> <span class="o">&amp;&amp;</span> <span class="n">method</span><span class="o">.</span><span class="na">isAnnotationPresent</span><span class="o">(</span><span class="n">Subscribe</span><span class="o">.</span><span class="na">class</span><span class="o">))</span> <span class="o">{</span>
+                    <span class="n">String</span> <span class="n">methodName</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getDeclaringClass</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&#34;.&#34;</span> <span class="o">+</span> <span class="n">method</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;@Subscribe method &#34;</span> <span class="o">+</span> <span class="n">methodName</span> <span class="o">+</span>
+                            <span class="s">&#34;must have exactly 1 parameter but has &#34;</span> <span class="o">+</span> <span class="n">parameterTypes</span><span class="o">.</span><span class="na">length</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">strictMethodVerification</span> <span class="o">&amp;&amp;</span> <span class="n">method</span><span class="o">.</span><span class="na">isAnnotationPresent</span><span class="o">(</span><span class="n">Subscribe</span><span class="o">.</span><span class="na">class</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">String</span> <span class="n">methodName</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getDeclaringClass</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&#34;.&#34;</span> <span class="o">+</span> <span class="n">method</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="n">methodName</span> <span class="o">+</span>
+                        <span class="s">&#34; is a illegal @Subscribe method: must be public, non-static, and non-abstract&#34;</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个方法就是一个比较重要的方法了，它通过反射的方法来把订阅者中的订阅方法给找到，并且对订阅方法的信息进行包装后（封装成SubscriberMethod），添加至容器中。</p>
+
+<p>这个方法虽然看似代码量很多，但是他的代码逻辑不难，并且源码中还有注释，所以就不一句句的分析了，挑一些点来说明一下。</p>
+
+<p><strong><em>if ((modifiers &amp; Modifier.PUBLIC) != 0 &amp;&amp; (modifiers &amp; MODIFIERS_IGNORE) == 0)</em></strong></p>
+
+<p>通过这个代码，我们明白了，为什么之前在创建订阅方法的时候，强调说方法的修饰符必须是Public的，不能是static的，abstract的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">parameterTypes</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getParameterTypes</span><span class="o">();</span>
+<span class="k">if</span> <span class="o">(</span><span class="n">parameterTypes</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="n">1</span><span class="err">）</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这俩句代码让我们知道了，在上一篇文章中，为什么会提示说订阅方法的参数个数要是1个。</p>
+
+<p>接着看，在成功找到构建出SubscriberMethod时，还有一个检查。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kt">boolean</span> <span class="nf">checkAdd</span><span class="o">(</span><span class="n">Method</span> <span class="n">method</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// 2 level check: 1st level with event type only (fast), 2nd level with complete signature when required.
+</span><span class="c1"></span>            <span class="c1">// Usually a subscriber doesn&#39;t have methods listening to the same event type.
+</span><span class="c1"></span>            <span class="n">Object</span> <span class="n">existing</span> <span class="o">=</span> <span class="n">anyMethodByEventType</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">eventType</span><span class="o">,</span> <span class="n">method</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="k">instanceof</span> <span class="n">Method</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">if</span> <span class="o">(!</span><span class="n">checkAddWithMethodSignature</span><span class="o">((</span><span class="n">Method</span><span class="o">)</span> <span class="n">existing</span><span class="o">,</span> <span class="n">eventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="c1">// Paranoia check
+</span><span class="c1"></span>                        <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalStateException</span><span class="o">();</span>
+                    <span class="o">}</span>
+                    <span class="c1">// Put any non-Method object to &#34;consume&#34; the existing Method
+</span><span class="c1"></span>                    <span class="n">anyMethodByEventType</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">eventType</span><span class="o">,</span> <span class="k">this</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">return</span> <span class="n">checkAddWithMethodSignature</span><span class="o">(</span><span class="n">method</span><span class="o">,</span> <span class="n">eventType</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">checkAddWithMethodSignature</span><span class="o">(</span><span class="n">Method</span> <span class="n">method</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">methodKeyBuilder</span><span class="o">.</span><span class="na">setLength</span><span class="o">(</span><span class="n">0</span><span class="o">);</span>
+            <span class="n">methodKeyBuilder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getName</span><span class="o">());</span>
+            <span class="n">methodKeyBuilder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="sc">&#39;&gt;&#39;</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">eventType</span><span class="o">.</span><span class="na">getName</span><span class="o">());</span>
+
+            <span class="n">String</span> <span class="n">methodKey</span> <span class="o">=</span> <span class="n">methodKeyBuilder</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+            <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">methodClass</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getDeclaringClass</span><span class="o">();</span>
+            <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">methodClassOld</span> <span class="o">=</span> <span class="n">subscriberClassByMethodKey</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">methodKey</span><span class="o">,</span> <span class="n">methodClass</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">methodClassOld</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">methodClassOld</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">methodClass</span><span class="o">))</span> <span class="o">{</span>
+                <span class="c1">// Only add if not already found in a sub class
+</span><span class="c1"></span>                <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="c1">// Revert the put, old class is further down the class hierarchy
+</span><span class="c1"></span>                <span class="n">subscriberClassByMethodKey</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">methodKey</span><span class="o">,</span> <span class="n">methodClassOld</span><span class="o">);</span>
+                <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个检查订阅方法是否已经存在，有两层检查，大多数情况下，我们只用到一层检查就够了，因为要方法名一致和输入参数类型也是一样的，在同一个类中根本就不行的，编译期都过不去。就像这样：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
+    <span class="o">....</span>
+    
+    <span class="nd">@Subscribe</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceivedMsg</span><span class="o">(</span><span class="n">Event</span> <span class="n">type</span><span class="o">){</span>
+        
+    <span class="o">}</span>
+    
+    <span class="nd">@Subscribe</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceivedMsg</span><span class="o">(</span><span class="n">Event</span> <span class="n">type</span><span class="o">){</span>
+        
+    <span class="o">}</span>
+    <span class="o">....</span>
+    
+<span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这样是不行的，那就可能产生疑惑，那么什么情况下会用到第二层的check呢？是啊，一个类中不可能存在两个方法它们的方法名和参数都一样啊，如果是重载的话那是方法名一样，参数又不一样。难道是？没错，这种情况指的就是继承。</p>
+
+<p>经过了层层查找检查，找到了订阅方法，并且封装成SubscriberMethod类，添加到容器中。在该类中找完之后它会接着判断订阅者有没有父类，如果有，它会向父类查找订阅方法。这就跟checkAdd方法的第二层check遥相呼应了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kt">void</span> <span class="nf">moveToSuperclass</span><span class="o">()</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">skipSuperClasses</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">clazz</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">clazz</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="na">getSuperclass</span><span class="o">();</span>
+                <span class="n">String</span> <span class="n">clazzName</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+                <span class="cm">/** Skip system classes, this just degrades performance. */</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">clazzName</span><span class="o">.</span><span class="na">startsWith</span><span class="o">(</span><span class="s">&#34;java.&#34;</span><span class="o">)</span> <span class="o">||</span> <span class="n">clazzName</span><span class="o">.</span><span class="na">startsWith</span><span class="o">(</span><span class="s">&#34;javax.&#34;</span><span class="o">)</span> <span class="o">||</span> <span class="n">clazzName</span><span class="o">.</span><span class="na">startsWith</span><span class="o">(</span><span class="s">&#34;android.&#34;</span><span class="o">))</span> <span class="o">{</span>
+                    <span class="n">clazz</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这样，查找订阅方法的流程就结束了，所查找到的订阅方法会放在一个集合容器中，并缓存起来，最后return出去。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="nf">findSubscriberMethods</span><span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="o">...</span>
+        <span class="o">...</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethods</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Subscriber &#34;</span> <span class="o">+</span> <span class="n">subscriberClass</span>
+                    <span class="o">+</span> <span class="s">&#34; and its super classes have no public methods with the   @Subscribe annotation&#34;</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">METHOD_CACHE</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">,</span> <span class="n">subscriberMethods</span><span class="o">);</span>
+            <span class="k">return</span> <span class="n">subscriberMethods</span><span class="o">;</span>
+        <span class="o">}</span>
+ <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>现在我们再回过头看之前的register代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">register</span><span class="o">(</span><span class="n">Object</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span> <span class="o">=</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">SubscriberMethod</span><span class="o">&gt;</span> <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">subscriberMethodFinder</span><span class="o">.</span><span class="na">findSubscriberMethods</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">SubscriberMethod</span> <span class="n">subscriberMethod</span> <span class="o">:</span> <span class="n">subscriberMethods</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过subscriberMethodFinder.findSubscriberMethods方法找到订阅方法集合后，还需要对每个订阅方法进行一个subscribe方法操作。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">subscribe</span><span class="o">(</span><span class="n">Object</span> <span class="n">subscriber</span><span class="o">,</span> <span class="n">SubscriberMethod</span> <span class="n">subscriberMethod</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span> <span class="o">=</span> <span class="n">subscriberMethod</span><span class="o">.</span><span class="na">eventType</span><span class="o">;</span>
+        <span class="n">Subscription</span> <span class="n">newSubscription</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Subscription</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">);</span>
+        <span class="n">CopyOnWriteArrayList</span><span class="o">&lt;</span><span class="n">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscriptions</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CopyOnWriteArrayList</span><span class="o">&lt;&gt;();</span>
+            <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">eventType</span><span class="o">,</span> <span class="n">subscriptions</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Subscriber &#34;</span> <span class="o">+</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">()</span> <span class="o">+</span> <span class="s">&#34; already registered to event &#34;</span>
+                        <span class="o">+</span> <span class="n">eventType</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kt">int</span> <span class="n">size</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">size</span> <span class="o">||</span> <span class="n">subscriberMethod</span><span class="o">.</span><span class="na">priority</span> <span class="o">&gt;</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">priority</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">subscriptions</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">i</span><span class="o">,</span> <span class="n">newSubscription</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">subscribedEvents</span> <span class="o">=</span> <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscribedEvents</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscribedEvents</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+            <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscribedEvents</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="n">subscribedEvents</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethod</span><span class="o">.</span><span class="na">sticky</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+                <span class="c1">// Existing sticky events of all subclasses of eventType have to be considered.
+</span><span class="c1"></span>                <span class="c1">// Note: Iterating over all events may be inefficient with lots of sticky events,
+</span><span class="c1"></span>                <span class="c1">// thus data structure should be changed to allow a more efficient lookup
+</span><span class="c1"></span>                <span class="c1">// (e.g. an additional map storing sub classes of super classes: Class -&gt; List&lt;Class&gt;).
+</span><span class="c1"></span>                <span class="n">Set</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">Object</span><span class="o">&gt;&gt;</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">entrySet</span><span class="o">();</span>
+                <span class="k">for</span> <span class="o">(</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">entry</span> <span class="o">:</span> <span class="n">entries</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">candidateEventType</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getKey</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">eventType</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">candidateEventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="n">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">();</span>
+                        <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+                <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们来看下代码，虽然看起来量比较大，但是逻辑还是比较简单的，首先会根据subscriber和subscriberMethod来构建一个Subscription对象，接着在subscriptionsByEventType Map容器中找到有没有对应key的value，然后走找不到等于null的逻辑。。。逻辑比较简单，不说了，简单总结一下就是对两个容器的添加Value值，subscriptions容器添加封装好的subscription，subscribedEvents容器添加eventType。还有一个就是对于黏性事件的处理，黏性事件对应于postSticky等sticky系列方法的。这个后面再说。</p>
+
+<p>所以这个subscribe方法作用就是对吧特定对象添加到容器中。到此，关于EventBus的订阅部分的源码逻辑我们就说完了。简单绘制一个注册流程图，把一些重要的方法，点表示一下。
+<img src="https://mryangy.github.io/yangyu.github.io/images/20190410/111.png" alt="在这里插入图片描述" /></p>
+
+<p>下面我们来看，发送事件的源码逻辑。</p>
+
+<hr />
+
+<h2 id="post-event">Post Event</h2>
+
+<p>注册逻辑完成后，订阅者，订阅方法都已经准备好了，现在就差事件发送者了，所以我们接下来就来看看，Publisher（事件发布者）是怎么发送事件消息到订阅方法的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">post</span><span class="o">(</span><span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">PostingThreadState</span> <span class="n">postingState</span> <span class="o">=</span> <span class="n">currentPostingThreadState</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">eventQueue</span> <span class="o">=</span> <span class="n">postingState</span><span class="o">.</span><span class="na">eventQueue</span><span class="o">;</span>
+        <span class="n">eventQueue</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(!</span><span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span> <span class="o">=</span> <span class="n">isMainThread</span><span class="o">();</span>
+            <span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Internal error. Abort state was not reset&#34;</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="k">while</span> <span class="o">(!</span><span class="n">eventQueue</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+                    <span class="n">postSingleEvent</span><span class="o">(</span><span class="n">eventQueue</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">0</span><span class="o">),</span> <span class="n">postingState</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们看代码，通过ThreadLocal来获得一个线程专属的PostingThreadState对象，然后把事件（Event）添加到队列中。对postingState的一些变量进行赋值操作。走进while循环，判断队列是否为空，不为空走postSingleEvent方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">postSingleEvent</span><span class="o">(</span><span class="n">Object</span> <span class="n">event</span><span class="o">,</span> <span class="n">PostingThreadState</span> <span class="n">postingState</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Error</span> <span class="o">{</span>
+        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventClass</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="kt">boolean</span> <span class="n">subscriptionFound</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">eventTypes</span> <span class="o">=</span> <span class="n">lookupAllEventTypes</span><span class="o">(</span><span class="n">eventClass</span><span class="o">);</span>
+            <span class="kt">int</span> <span class="n">countTypes</span> <span class="o">=</span> <span class="n">eventTypes</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="n">countTypes</span><span class="o">;</span> <span class="n">h</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="n">eventTypes</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">h</span><span class="o">);</span>
+                <span class="n">subscriptionFound</span> <span class="o">|=</span> <span class="n">postSingleEventForEventType</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">,</span> <span class="n">clazz</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">subscriptionFound</span> <span class="o">=</span> <span class="n">postSingleEventForEventType</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">,</span> <span class="n">eventClass</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">subscriptionFound</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">logNoSubscriberMessages</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">logger</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">FINE</span><span class="o">,</span> <span class="s">&#34;No subscribers registered for event &#34;</span> <span class="o">+</span> <span class="n">eventClass</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">sendNoSubscriberEvent</span> <span class="o">&amp;&amp;</span> <span class="n">eventClass</span> <span class="o">!=</span> <span class="n">NoSubscriberEvent</span><span class="o">.</span><span class="na">class</span> <span class="o">&amp;&amp;</span>
+                    <span class="n">eventClass</span> <span class="o">!=</span> <span class="n">SubscriberExceptionEvent</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">post</span><span class="o">(</span><span class="k">new</span> <span class="n">NoSubscriberEvent</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">event</span><span class="o">));</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们重点看几个点，evenInheritance，通过这个变量名我们大概也能猜到是跟继承有关。这个变量默认值是true，表示向上查找事件的父类，也包含接口。这个变量可以通过</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="n">EventBusBuilder</span> <span class="nf">eventInheritance</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">eventInheritance</span> <span class="o">=</span> <span class="n">eventInheritance</span><span class="o">;</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">;</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>方法设置为false。如果不需要对事件进行向上查找的话，可以吧该值设置为false，设置为false的话，就不需要考虑事件的父类，实现的接口等问题了，效率就自然高了起来。对于简单的事件类型，可以提升百分之20的效率，对于复杂的事件类型所提升的效率还会超过百分之20。不过官方也说，一般来说没必要设置为false，因为本来eventbus传递事件就很快，对CPU的消耗就很低，除非你是每秒发送成百上千的事件。。。。</p>
+
+<p>不扯淡了，接着看，默认eventInheritance的值是true。它会找到事件的所有事件类型。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="cm">/** Looks up all Class objects including super classes and interfaces. Should also work for interfaces. */</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">lookupAllEventTypes</span><span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">eventTypesCache</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">eventTypes</span> <span class="o">=</span> <span class="n">eventTypesCache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventClass</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">eventTypes</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">eventTypes</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+                <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="n">eventClass</span><span class="o">;</span>
+                <span class="k">while</span> <span class="o">(</span><span class="n">clazz</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">eventTypes</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+                    <span class="n">addInterfaces</span><span class="o">(</span><span class="n">eventTypes</span><span class="o">,</span> <span class="n">clazz</span><span class="o">.</span><span class="na">getInterfaces</span><span class="o">());</span>
+                    <span class="n">clazz</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="na">getSuperclass</span><span class="o">();</span>
+                <span class="o">}</span>
+                <span class="n">eventTypesCache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">eventClass</span><span class="o">,</span> <span class="n">eventTypes</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="n">eventTypes</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>逻辑比较简单就不说了，找到所有的事件类型之后，就会走postSingleEventForEventType方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">postSingleEventForEventType</span><span class="o">(</span><span class="n">Object</span> <span class="n">event</span><span class="o">,</span> <span class="n">PostingThreadState</span> <span class="n">postingState</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">CopyOnWriteArrayList</span><span class="o">&lt;</span><span class="n">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span><span class="o">;</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventClass</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">subscriptions</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span> <span class="o">:</span> <span class="n">subscriptions</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">event</span> <span class="o">=</span> <span class="n">event</span><span class="o">;</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">subscription</span> <span class="o">=</span> <span class="n">subscription</span><span class="o">;</span>
+                <span class="kt">boolean</span> <span class="n">aborted</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">postToSubscription</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span><span class="o">);</span>
+                    <span class="n">aborted</span> <span class="o">=</span> <span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">event</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">subscription</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">aborted</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">break</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在这里，我们看到了之前注册的逻辑，subscribe方法中当时就是添加了subscription进入容器中。我们现在这里，找到了它的用处。我们重点看postToSubscription方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">postToSubscription</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">switch</span> <span class="o">(</span><span class="n">subscription</span><span class="o">.</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">threadMode</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">case</span> <span class="nl">POSTING:</span>
+                <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="k">case</span> <span class="nl">MAIN:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="k">case</span> <span class="nl">MAIN_ORDERED:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">mainThreadPoster</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="c1">// temporary: technically not correct as poster not decoupled from subscriber
+</span><span class="c1"></span>                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="k">case</span> <span class="nl">BACKGROUND:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">backgroundPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="k">case</span> <span class="nl">ASYNC:</span>
+                <span class="n">asyncPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span><span class="nl">
+</span><span class="nl">            default:</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalStateException</span><span class="o">(</span><span class="s">&#34;Unknown thread mode: &#34;</span> <span class="o">+</span> <span class="n">subscription</span><span class="o">.</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">threadMode</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个方法，是事件发布者，发送事件消息的核心方法，我们看这个方法，看到这5个case，是不是很熟悉，这不就是对应EventBus 的5中ThreadMode嘛！我们分别看看每个case对应的实现吧！建议看这个方法实现的话需要结合EventBus五种线程模式代表的意思来看，会更好理解，如果你现在已经忘了，EventBus的5种线程模式分别代表什么意思，那就看看我的上篇文章 <a href="https://blog.csdn.net/qq_34902522/article/details/84890474">EventBus 使用（全面分析，细节提醒）</a> 回顾复习一下吧。</p>
+
+<p><strong><em>Posting</em></strong></p>
+
+<p>如果订阅方法的订阅线程模式是posting模式的话，是Publisher（事件发布者）和Subscriber（事件接受者）在同一个线程环境下的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kt">void</span> <span class="nf">invokeSubscriber</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">subscription</span><span class="o">.</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">subscription</span><span class="o">.</span><span class="na">subscriber</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InvocationTargetException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">handleSubscriberException</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">,</span> <span class="n">e</span><span class="o">.</span><span class="na">getCause</span><span class="o">());</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalStateException</span><span class="o">(</span><span class="s">&#34;Unexpected exception&#34;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>所以这种case下，它是直接通过反射来invoke订阅方法，哦，原来是反射，看到反射就很熟悉，因为之前订阅逻辑中查找订阅方法也是通过反射的方式来找到的。</p>
+
+<p><strong><em>MAIN</em></strong></p>
+
+<p>这是我们熟悉的ThreadMode，它的对应逻辑是这样的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"> <span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这里说一下isMainThread变量是哪个的main Thread，因为MAIN ThreadMode下面又有isMainThread的判断，就很容易让人搞混。switch case语句中，case对应的各种线程模式，是订阅方法设置的线程模式，是属于订阅方法的。isMainThread 所表示的是事件发布者，调用post方法来发送事件时，当时的线程环境是否是主线程环境。</p>
+
+<p>接着看，如果订阅方法的ThreadMode是MAIN、post事件的线程环境是主线程的话，那就像Posting模式一样，直接调用invokeSubscriber，走反射的逻辑，把事件传递给订阅方法。否则就是走mainThreadPoster.enqueue(subscription, event);逻辑。这里提一嘴mainThreadPoster对象，我们之前有提到过它，当时说看名字猜测和EventBus的五种线程模式中的MAIN mode很像，应该会在事件发布者种跟主线程模式的逻辑有关，这不，让我们猜对了。所以说看源码要发挥想象力的去<strong><em>猜</em></strong>。。。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">interface</span> <span class="nc">Poster</span> <span class="o">{</span>
+
+    <span class="cm">/**
+</span><span class="cm">     * Enqueue an event to be posted for a particular subscription.
+</span><span class="cm">     *
+</span><span class="cm">     * @param subscription Subscription which will receive the event.
+</span><span class="cm">     * @param event        Event that will be posted to subscribers.
+</span><span class="cm">     */</span>
+    <span class="kt">void</span> <span class="nf">enqueue</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">);</span>
+<span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>mainThreadPoster是HandlerPoster类型的，HandlerPoster实现了Poster接口。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HandlerPoster</span> <span class="kd">extends</span> <span class="n">Handler</span> <span class="kd">implements</span> <span class="n">Poster</span> <span class="o">{</span>
+    <span class="o">...</span>
+    <span class="o">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">enqueue</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">PendingPost</span><span class="o">.</span><span class="na">obtainPendingPost</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">queue</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">handlerActive</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">handlerActive</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+                <span class="k">if</span> <span class="o">(!</span><span class="n">sendMessage</span><span class="o">(</span><span class="n">obtainMessage</span><span class="o">()))</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Could not send handler message&#34;</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">boolean</span> <span class="n">rescheduled</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="kt">long</span> <span class="n">started</span> <span class="o">=</span> <span class="n">SystemClock</span><span class="o">.</span><span class="na">uptimeMillis</span><span class="o">();</span>
+            <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">pendingPost</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="c1">// Check again, this time in synchronized
+</span><span class="c1"></span>                        <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+                        <span class="k">if</span> <span class="o">(</span><span class="n">pendingPost</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                            <span class="n">handlerActive</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                            <span class="k">return</span><span class="o">;</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+                <span class="n">eventBus</span><span class="o">.</span><span class="na">invokeSubscriber</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+                <span class="kt">long</span> <span class="n">timeInMethod</span> <span class="o">=</span> <span class="n">SystemClock</span><span class="o">.</span><span class="na">uptimeMillis</span><span class="o">()</span> <span class="o">-</span> <span class="n">started</span><span class="o">;</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">timeInMethod</span> <span class="o">&gt;=</span> <span class="n">maxMillisInsideHandleMessage</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">if</span> <span class="o">(!</span><span class="n">sendMessage</span><span class="o">(</span><span class="n">obtainMessage</span><span class="o">()))</span> <span class="o">{</span>
+                        <span class="k">throw</span> <span class="k">new</span> <span class="n">EventBusException</span><span class="o">(</span><span class="s">&#34;Could not send handler message&#34;</span><span class="o">);</span>
+                    <span class="o">}</span>
+                    <span class="n">rescheduled</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+                    <span class="k">return</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="n">handlerActive</span> <span class="o">=</span> <span class="n">rescheduled</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="o">...</span>
+    <span class="o">...</span>
+<span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过上面的代码，我们知道HandlerPoster继承了Handler，看到这个地方我会不由的想到Android handler消息处理机制，哦，原来EventBus里的跨线程通信，底层也是通过handler实现的吗？？？</p>
+
+<p>我会进而想看看它的构造方法中的looper对象是从哪传来的，如果是从主线程传的main looper，那岂不正对应这种情况：post方式非主线程，订阅方法的线程模式是主线程。</p>
+
+<p><img src="https://mryangy.github.io/yangyu.github.io/images/20190410/222.jpg" alt="在这里插入图片描述" /></p>
+
+<p>查找后我们发现，确实传进来的是main looper！</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">Object</span> <span class="nf">getAndroidMainLooperOrNull</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Looper</span><span class="o">.</span><span class="na">getMainLooper</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">RuntimeException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// Not really a functional Android (e.g. &#34;Stub!&#34; maven dependencies)
+</span><span class="c1"></span>            <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>好的，这波分析，先放在一边，大概心里有数了，我们回到前面</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>看看 HandlerPoster 的enqueue方法。该方法中构造了一个PendingPost对象并add至队列中。然后发一个message消息。然后在HandlerPoster的handleMessage方法中处理发送过来的消息，我们重点看这行代码</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">eventBus.invokeSubscriber(pendingPost);</pre></td></tr></table>
+</div>
+</div>
+<p>很熟悉吧，这不是调用反射方法的那个方法嘛，再结合之前分析的传入的looper是main looper，这个handleMessage是执行在主线程的，原来原因就是为了调用invokeSubscriber方法，这就是实现了跨线程操作。</p>
+
+<p><strong><em>MAIN_ORDERED</em></strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="k">if</span> <span class="o">(</span><span class="n">mainThreadPoster</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="c1">// temporary: technically not correct as poster not decoupled from subscriber
+</span><span class="c1"></span>                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个模式，有了前面两个case的分析，现在来看就比较简单了，就不分析了。</p>
+
+<p><strong><em>BACKGROUND</em></strong></p>
+
+<p>我们回忆下ThreadMode是BACKGROUND时的含义：</p>
+
+<p>post发布环境是主线程的话，事件接收处理的环境是一个子线程。</p>
+
+<p>post发布环境是子线程的话，事件接收处理环境和post发布环境一样。</p>
+
+<p>有了这个基础后，我们再看看代码逻辑。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">backgroundPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>如果不是主线程的话，直接调用invokeSubscriber(subscription, event);方法，没毛病。如果是主线程，会调用BackgroundPoster的enqueue方法，这个BackgroundPoster类也是实现了Poster接口的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">final</span> <span class="kd">class</span> <span class="nc">BackgroundPoster</span> <span class="kd">implements</span> <span class="n">Runnable</span><span class="o">,</span> <span class="n">Poster</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">PendingPostQueue</span> <span class="n">queue</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">EventBus</span> <span class="n">eventBus</span><span class="o">;</span>
+
+    <span class="kd">private</span> <span class="kd">volatile</span> <span class="kt">boolean</span> <span class="n">executorRunning</span><span class="o">;</span>
+
+    <span class="n">BackgroundPoster</span><span class="o">(</span><span class="n">EventBus</span> <span class="n">eventBus</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">eventBus</span> <span class="o">=</span> <span class="n">eventBus</span><span class="o">;</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PendingPostQueue</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">enqueue</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">PendingPost</span><span class="o">.</span><span class="na">obtainPendingPost</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">queue</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">executorRunning</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">executorRunning</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+                <span class="n">eventBus</span><span class="o">.</span><span class="na">getExecutorService</span><span class="o">().</span><span class="na">execute</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">(</span><span class="n">1000</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">pendingPost</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+                            <span class="c1">// Check again, this time in synchronized
+</span><span class="c1"></span>                            <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+                            <span class="k">if</span> <span class="o">(</span><span class="n">pendingPost</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                                <span class="n">executorRunning</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                                <span class="k">return</span><span class="o">;</span>
+                            <span class="o">}</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                    <span class="n">eventBus</span><span class="o">.</span><span class="na">invokeSubscriber</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">eventBus</span><span class="o">.</span><span class="na">getLogger</span><span class="o">().</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">WARNING</span><span class="o">,</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&#34; was interruppted&#34;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="n">executorRunning</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+<span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>BackgroundPoster 类的代码比较少，就全贴了，方便看。我们看到BackgroundPoster他不仅实现了Poster接口，他还实现了Runnale接口，看到Runnale接口，又会不自觉的想到些什么。。比如Handler的post方法，runnale和线程，线程池的配合使用等等。</p>
+
+<p>我们看它enqueue方法跟之前HandlerPoster 的enqueue方法很像，一个套路。也是构建个PendingPost对象入队。然后我们重点看</p>
+
+<p>eventBus.getExecutorService().execute(this);</p>
+
+<p>这个语句，这是调用了EventBus中的线程池，来执行这个Runnale对象（手动狗头）。这个EventBus中的线程池是通过EventBusBuilder创建传进来的，默认是创建一个CacheThreadPool。当然我们也可以根据需求自己创建传进来。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">ExecutorService</span> <span class="n">DEFAULT_EXECUTOR_SERVICE</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>接着，我们看这个run方法，它的核心方法  eventBus.invokeSubscriber(pendingPost); 和HandlerPoster里面的handleMessage方法中一样，调用相同的方法，不同的是它们调用invokeSubscriber的线程环境不一样，一个是主线程，一个是子线程。</p>
+
+<p><strong><em>ASYNC</em></strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">asyncPoster.enqueue(subscription, event);</pre></td></tr></table>
+</div>
+</div>
+<p>无论post是什么线程环境，订阅方法的线程环境都是子线程。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">class</span> <span class="nc">AsyncPoster</span> <span class="kd">implements</span> <span class="n">Runnable</span><span class="o">,</span> <span class="n">Poster</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">PendingPostQueue</span> <span class="n">queue</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">EventBus</span> <span class="n">eventBus</span><span class="o">;</span>
+
+    <span class="n">AsyncPoster</span><span class="o">(</span><span class="n">EventBus</span> <span class="n">eventBus</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">eventBus</span> <span class="o">=</span> <span class="n">eventBus</span><span class="o">;</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PendingPostQueue</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">enqueue</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">PendingPost</span><span class="o">.</span><span class="na">obtainPendingPost</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+        <span class="n">queue</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+        <span class="n">eventBus</span><span class="o">.</span><span class="na">getExecutorService</span><span class="o">().</span><span class="na">execute</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">PendingPost</span> <span class="n">pendingPost</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">pendingPost</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalStateException</span><span class="o">(</span><span class="s">&#34;No pending post available&#34;</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="n">eventBus</span><span class="o">.</span><span class="na">invokeSubscriber</span><span class="o">(</span><span class="n">pendingPost</span><span class="o">);</span>
+    <span class="o">}</span>
+
+<span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>也是通过CacheThreadPool线程池来实现的，和上一个比较像，就不在赘述了。</p>
+
+<p>到此，EventBus中的事件发布流程说完了。
+简单绘制个流程图梳理下：
+<img src="https://mryangy.github.io/yangyu.github.io/images/20190410/333.png" alt="在这里插入图片描述" /></p>
+
+<hr />
+
+<h2 id="unregister">unregister</h2>
+
+<p>订阅者（subscriber）的register，发布者（publisher）post，订阅者（subscriber）的unregister EventBus主要三大部分，已经说了前两个，现在来看看unregister这一部分。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">unregister</span><span class="o">(</span><span class="n">Object</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">subscribedTypes</span> <span class="o">=</span> <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscribedTypes</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span> <span class="o">:</span> <span class="n">subscribedTypes</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">unsubscribeByEventType</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">eventType</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">logger</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">WARNING</span><span class="o">,</span> <span class="s">&#34;Subscriber to unregister was not registered before: &#34;</span> <span class="o">+</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>unregister这部分的内荣比较简单，总的来说就是把之前注册的时候往容器中添加的什么事件类型啊，订阅类型，在一个个移除去就行了。</p>
+
+<p>看上面的代码，typesBySubscriber这个map容器，是不是很熟悉，我们之前subscribe 订阅的时候，就用到了它，当时是创建它的value值，往它的value值里面添加内容，现在是remove罢了。代码贴出来大家看到，就明白了，这里就不解释了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">unsubscribeByEventType</span><span class="o">(</span><span class="n">Object</span> <span class="n">subscriber</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">int</span> <span class="n">size</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="n">Subscription</span> <span class="n">subscription</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">subscription</span><span class="o">.</span><span class="na">subscriber</span> <span class="o">==</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">subscription</span><span class="o">.</span><span class="na">active</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                    <span class="n">subscriptions</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+                    <span class="n">i</span><span class="o">--;</span>
+                    <span class="n">size</span><span class="o">--;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<hr />
+
+<p>至此，关于EventBus的源码解析基本来说是说完了，因为EventBus 他的核心内容，架构，就是这三部分，订阅方（Subscriber），发布者 Post 事件（Publisher），事件（Event）。我们再来看下官网的图片感受一下。</p>
+
+<p><img src="https://mryangy.github.io/yangyu.github.io/images/20190410/444.png" alt="在这里插入图片描述" /></p>
+
+<p>其他的一些可能没说到的细节点，在你明白这三部分的源码逻辑后，都将自然而然的明白。</p>
+
+<hr />
+
+<p>补充一下之前在subscribe方法中遇到的sticky（粘性事件问题）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethod</span><span class="o">.</span><span class="na">sticky</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+                <span class="c1">// Existing sticky events of all subclasses of eventType have to be considered.
+</span><span class="c1"></span>                <span class="c1">// Note: Iterating over all events may be inefficient with lots of sticky events,
+</span><span class="c1"></span>                <span class="c1">// thus data structure should be changed to allow a more efficient lookup
+</span><span class="c1"></span>                <span class="c1">// (e.g. an additional map storing sub classes of super classes: Class -&gt; List&lt;Class&gt;).
+</span><span class="c1"></span>                <span class="n">Set</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">Object</span><span class="o">&gt;&gt;</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">entrySet</span><span class="o">();</span>
+                <span class="k">for</span> <span class="o">(</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">entry</span> <span class="o">:</span> <span class="n">entries</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">candidateEventType</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getKey</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">eventType</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">candidateEventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="n">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">();</span>
+                        <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+                <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>他配合postSticky方法，订阅方法中的@Subscribe注解中sticky参数要设置为true等条件。来使用。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"> <span class="kd">public</span> <span class="kt">void</span> <span class="nf">postSticky</span><span class="o">(</span><span class="n">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">stickyEvents</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">stickyEvents</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getClass</span><span class="o">(),</span> <span class="n">event</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="c1">// Should be posted after it is putted, in case the subscriber wants to remove immediately
+</span><span class="c1"></span>        <span class="n">post</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们发现，如果是粘性事件的话，它在subscribe订阅的时候就开始post 事件了。通过checkPostStickyEventToSubscription方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">Subscription</span> <span class="n">newSubscription</span><span class="o">,</span> <span class="n">Object</span> <span class="n">stickyEvent</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">stickyEvent</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// If the subscriber is trying to abort the event, it will fail (event is not tracked in posting state)
+</span><span class="c1"></span>            <span class="c1">// --&gt; Strange corner case, which we don&#39;t take care of here.
+</span><span class="c1"></span>            <span class="n">postToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">,</span> <span class="n">isMainThread</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>然后他里面的实现逻辑还是</p>
+
+<p><strong>postToSubscription</strong> 通过这个方法来post 事件，跟前面的一样，只不过post的时机不一样了。粘性事件它在订阅（register）的时候会post一次，在postSticky的时候还会post一次，这就让它产生了<strong>粘性（sticky）</strong> 的特性了。</p>
+
+<h2 id="结语">结语</h2>
+
+<p>关于EventBus源码分析就说这些，文章中出了分析EventBus的源码实现，也介绍了本人看源码的一些思路心得。希望对大家能有用。如果有一些不一样的看法或者需要补充的点，可以在留言区留言发表观点。大家共同学习进步！！</p>
+
+<hr />
+
+<blockquote>
+<p>扫码加入我的个人微信公众号：Android开发圈 ，一起学习Android知识！！</p>
+
+<p><img src="https://mryangy.github.io/yangyu.github.io/images/person/logo.jpg" alt="在这里插入图片描述" /></p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">     "宇宝守护神（rainyang）"</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2019-04-10
+        
+    </span>
+  </p>
+  
+  
+</div>
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    <label class="qr-code-image" for="reward">
+        <img class="image" src="https://mryangy.github.io/yangyu.github.io/images/person/Wechat_Pay.jpeg">
+        <span>wechat</span>
+      </label>
+    <label class="qr-code-image" for="reward">
+        <img class="image" src="https://mryangy.github.io/yangyu.github.io/images/person/Ali_Pay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div><footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/eventbus/">EventBus</a>
+          <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/">多线程通信</a>
+          <a href="/tags/%E8%A7%A3%E8%80%A6/">“解耦”</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/linkedlist_source/">
+            <span class="next-text nav-default">容器类源码解析系列（二）—— LinkedList 集合源码分析(最新版)</span>
+            <span class="next-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:mryangy0423@163.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/MRYangY" class="iconfont icon-github" title="github"></a>
+  <a href="https://rainyang.me/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+      <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+  <span class="copyright-year">
+    &copy; 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">rainyang</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
