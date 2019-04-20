@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>容器类源码解析系列（四）---SparseArray分析(最新版) - RainYang&#39;s Blog</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="     &#34;宇宝守护神（rainyang）&#34;" /><meta name="description" content="容器类源码解析系列已经更新到了第四篇，前三篇已经分别对**ArrayList、LinkedList、HashMap**进行源码分析。" /><meta name="keywords" content="Hugo, theme, even" />
+
+
+
+<meta name="google-site-verification" content="UA-138571039-1" />
+
+
+<meta name="generator" content="Hugo 0.54.0 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://rainyang.me/post/sparsearray/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<link href="/dist/even.c2a46f00.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="容器类源码解析系列（四）---SparseArray分析(最新版)" />
+<meta property="og:description" content="容器类源码解析系列已经更新到了第四篇，前三篇已经分别对**ArrayList、LinkedList、HashMap**进行源码分析。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://rainyang.me/post/sparsearray/" />
+<meta property="article:published_time" content="2019-04-20T10:43:15&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-20T10:43:15&#43;08:00"/>
+
+<meta itemprop="name" content="容器类源码解析系列（四）---SparseArray分析(最新版)">
+<meta itemprop="description" content="容器类源码解析系列已经更新到了第四篇，前三篇已经分别对**ArrayList、LinkedList、HashMap**进行源码分析。">
+
+
+<meta itemprop="datePublished" content="2019-04-20T10:43:15&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-20T10:43:15&#43;08:00" />
+<meta itemprop="wordCount" content="2526">
+
+
+
+<meta itemprop="keywords" content="SparseArray,数据结构," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="容器类源码解析系列（四）---SparseArray分析(最新版)"/>
+<meta name="twitter:description" content="容器类源码解析系列已经更新到了第四篇，前三篇已经分别对**ArrayList、LinkedList、HashMap**进行源码分析。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">RainYang</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">RainYang</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">容器类源码解析系列（四）---SparseArray分析(最新版)</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-20 </span>
+        <div class="post-category">
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"> 数据结构 </a>
+            </div>
+          <span class="more-meta"> 2526 words </span>
+          <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#容器类源码解析系列-四-sparsearray分析">容器类源码解析系列（四）&mdash;SparseArray分析</a>
+<ul>
+<li><a href="#引言">引言</a></li>
+<li><a href="#要点">要点</a></li>
+<li><a href="#构造方法">构造方法</a></li>
+<li><a href="#常规操作">常规操作</a>
+<ul>
+<li><a href="#添加数据">添加数据</a></li>
+<li><a href="#set-操作">set 操作</a></li>
+<li><a href="#删除操作">删除操作</a></li>
+<li><a href="#get操作">get操作</a></li>
+<li><a href="#gc">gc</a></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      
+
+<h2 id="容器类源码解析系列-四-sparsearray分析">容器类源码解析系列（四）&mdash;SparseArray分析</h2>
+
+<h3 id="引言">引言</h3>
+
+<p>容器类源码解析系列已经更新到了第四篇，前三篇已经分别对<strong>ArrayList、LinkedList、HashMap</strong>进行源码分析。</p>
+
+<ol>
+<li><p><a href="https://rainyang.me/post/arraylist_anayle/">容器类源码解析系列（一）—— ArrayList 源码分析(最新版)</a></p></li>
+
+<li><p><a href="https://rainyang.me/post/linkedlist_source/">容器类源码解析系列（二）—— LinkedList 集合源码分析(最新版)</a></p></li>
+
+<li><p><a href="https://rainyang.me/post/hashmap_%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">容器类源码解析系列（三）—— HashMap 源码分析(最新版)</a></p></li>
+</ol>
+
+<p><strong>SparseArray</strong> 是用来存储Key-Value这种映射关系的容器，<strong>它要求Key的类型必须是int型</strong>。</p>
+
+<h3 id="要点">要点</h3>
+
+<ul>
+<li><p>Key的类型必须是int型；</p></li>
+
+<li><p>SparseArray底层通过双数组的结构实现数据存储，一个数组用来存储key值，一个数组用来存储value；</p></li>
+</ul>
+
+<p><img src="https://mryangy.github.io/yangyu.github.io/images/20190420/Snip20190420_3.png" alt="SparseArray" /></p>
+
+<ul>
+<li><p>相较于HashMap，在存储key（int型）-value数据时，SparseArray会更省内存，但是在数据量大的情况下，查找效率没有HashMap好。</p></li>
+
+<li><p>Sparse可以存储NULL值，没有fail-fast机制；</p></li>
+</ul>
+
+<p>关于fail-fast机制，<a href="https://rainyang.me/post/arraylist_anayle/">容器类源码解析系列（一）—— ArrayList 源码分析(最新版)</a>  这篇文章有详细介绍。</p>
+
+<h3 id="构造方法">构造方法</h3>
+
+<p>在看构造方法之前先看一下几个重要成员变量。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">  private static final Object DELETED = new Object();
+  private boolean mGarbage = false;
+  
+  private int[] mKeys;
+  private Object[] mValues;
+  private int mSize;</pre></td></tr></table>
+</div>
+</div>
+<p>mKeys和mValues是我上面提到的那两个数组，分别用来存储key和value的。mSize表示容器中key-value键值对的数量。
+DELETED是什么呢？还有mGarbage？
+上面的要点中，我们提到，SparseArray在存储数据时比HashMap更省内存，但是效率没有HashMap高，SparseArray使用了二分查找，这个我们在后面的源码分析中能够看到。
+所以SparseArray想了一个方法来提高效率，就用到了DELETED和mGarbage这两个变量。这个方法是，在删除数据时，没有立马把数据置空回收，重组数组结构，而是先把要删除的value先置为DELETED状态，在后面合适的时机，mGarbage会被置为true，然后调用gc方法，统一清除DELETED状态的数据，重新调整容器结构。而在这个过程中，如果有新添加的数据，是可以复用DELETED状态对应的index的，这样DELETED数据又会变成正常数据，不会被回收了。 这样就避免了频繁的回收调整次数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	/**
+     * Creates a new SparseArray containing no mappings.
+     */
+    public SparseArray() {
+        this(10);
+    }
+
+    /**
+     * Creates a new SparseArray containing no mappings that will not
+     * require any additional memory allocation to store the specified
+     * number of mappings.  If you supply an initial capacity of 0, the
+     * sparse array will be initialized with a light-weight representation
+     * not requiring any additional array allocations.
+     */
+    public SparseArray(int initialCapacity) {
+        if (initialCapacity == 0) {
+            mKeys = EmptyArray.INT;
+            mValues = EmptyArray.OBJECT;
+        } else {
+            mValues = ArrayUtils.newUnpaddedObjectArray(initialCapacity);
+            mKeys = new int[mValues.length];
+        }
+        mSize = 0;
+    }
+	</pre></td></tr></table>
+</div>
+</div>
+<p>构造方法很简单，就两个构造方法，默认的不传capacity参数的情况下创建的数组长度是10。</p>
+
+<h3 id="常规操作">常规操作</h3>
+
+<h4 id="添加数据">添加数据</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
+</span><span class="cm">     * Adds a mapping from the specified key to the specified value,
+</span><span class="cm">     * replacing the previous mapping from the specified key if there
+</span><span class="cm">     * was one.
+</span><span class="cm">     */</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">put</span><span class="o">(</span><span class="kt">int</span> <span class="n">key</span><span class="o">,</span> <span class="n">E</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      	<span class="c1">//通过二分查找来找到mKeys数组中对应key的index索引。
+</span><span class="c1"></span>        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">ContainerHelpers</span><span class="o">.</span><span class="na">binarySearch</span><span class="o">(</span><span class="n">mKeys</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span> <span class="c1">//如果找到了，表示之前存过这个key，则覆盖旧的value。
+</span><span class="c1"></span>            <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="o">~</span><span class="n">i</span><span class="o">;</span><span class="c1">//取反，把负数变成正数。（注释一）
+</span><span class="c1"></span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">mSize</span> <span class="o">&amp;&amp;</span> <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">==</span> <span class="n">DELETED</span><span class="o">)</span> <span class="o">{</span><span class="c1">//如果这个key对应的value之前被删除了，但是还没有被执行gc操作，目前还是DELETED状态，那么就复用此index。(注释二)
+</span><span class="c1"></span>                <span class="n">mKeys</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">key</span><span class="o">;</span>
+                <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+                <span class="k">return</span><span class="o">;</span>
+            <span class="o">}</span>
+
+            <span class="k">if</span> <span class="o">(</span><span class="n">mGarbage</span> <span class="o">&amp;&amp;</span> <span class="n">mSize</span> <span class="o">&gt;=</span> <span class="n">mKeys</span><span class="o">.</span><span class="na">length</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">gc</span><span class="o">();</span>
+
+                <span class="c1">// Search again because indices may have changed.
+</span><span class="c1"></span>                <span class="n">i</span> <span class="o">=</span> <span class="o">~</span><span class="n">ContainerHelpers</span><span class="o">.</span><span class="na">binarySearch</span><span class="o">(</span><span class="n">mKeys</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="n">mKeys</span> <span class="o">=</span> <span class="n">GrowingArrayUtils</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="n">mKeys</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">i</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span><span class="c1">//插入新key，如果需要扩容，就像ArrayList那样，通过copy操作来完成。
+</span><span class="c1"></span>            <span class="n">mValues</span> <span class="o">=</span> <span class="n">GrowingArrayUtils</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="n">mValues</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">i</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span><span class="c1">//插入新value
+</span><span class="c1"></span>            <span class="n">mSize</span><span class="o">++;</span><span class="c1">//表示新添加了一对key-value键值对。
+</span><span class="c1"></span>        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>上面在查找key对应的索引时，使用了二分查找<a href="https://zh.wikipedia.org/wiki/二分搜索算法">二分搜索算法</a> 。我们看下代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">static</span> <span class="kt">int</span> <span class="nf">binarySearch</span><span class="o">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">array</span><span class="o">,</span> <span class="kt">int</span> <span class="n">size</span><span class="o">,</span> <span class="kt">int</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">int</span> <span class="n">lo</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>
+        <span class="kt">int</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span>
+
+        <span class="k">while</span> <span class="o">(</span><span class="n">lo</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kd">final</span> <span class="kt">int</span> <span class="n">mid</span> <span class="o">=</span> <span class="o">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="o">)</span> <span class="o">&gt;&gt;&gt;</span> <span class="n">1</span><span class="o">;</span>
+            <span class="kd">final</span> <span class="kt">int</span> <span class="n">midVal</span> <span class="o">=</span> <span class="n">array</span><span class="o">[</span><span class="n">mid</span><span class="o">];</span>
+
+            <span class="k">if</span> <span class="o">(</span><span class="n">midVal</span> <span class="o">&lt;</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">lo</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="n">1</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">midVal</span> <span class="o">&gt;</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">hi</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">mid</span><span class="o">;</span>  <span class="c1">// value found
+</span><span class="c1"></span>            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="o">~</span><span class="n">lo</span><span class="o">;</span>  <span class="c1">// value not present
+</span><span class="c1"></span>    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>~ 操作是什么意思呢？表示按位取反。</p>
+
+<p>假设lo值为3；int是四个字节，其二进制表示为：00000000 00000000 00000000 00000011，那么~3 就等于：</p>
+
+<p>11111111 11111111 11111111 11111100 等于-4。</p>
+
+<p>所以注释一处的操作就好理解了。注释二 的行为表现就是我们上面说到的DELETED状态的妙用，用来提高效率的。</p>
+
+<h4 id="set-操作">set 操作</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">setValueAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">index</span><span class="o">,</span> <span class="n">E</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">mGarbage</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">gc</span><span class="o">();</span>
+        <span class="o">}</span>
+
+        <span class="n">mValues</span><span class="o">[</span><span class="n">index</span><span class="o">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这里要注意index的范围要在0~size()-1之间。</p>
+
+<h4 id="删除操作">删除操作</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">delete</span><span class="o">(</span><span class="kt">int</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">ContainerHelpers</span><span class="o">.</span><span class="na">binarySearch</span><span class="o">(</span><span class="n">mKeys</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">!=</span> <span class="n">DELETED</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">DELETED</span><span class="o">;</span>
+                <span class="n">mGarbage</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p><strong>可以看到，它在执行删除操作时并没有立马把对应的value置为null。而是先设置为DELETED状态，然后后面找到合适时机一致回收，这个期间该key是可以被复用的，如果被复用那么DELETED状态可以重新变成NORMAL状态。</strong>我们同时也注意到mGarbage这个标志位在此刻被置为了true。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="cm">/**
+</span><span class="cm">     * Removes the mapping at the specified index.
+</span><span class="cm">     *
+</span><span class="cm">     * &lt;p&gt;For indices outside of the range &lt;code&gt;0...size()-1&lt;/code&gt;,
+</span><span class="cm">     * the behavior is undefined.&lt;/p&gt;
+</span><span class="cm">     * 主要index的范围问题
+</span><span class="cm">     */</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">removeAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">index</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">mValues</span><span class="o">[</span><span class="n">index</span><span class="o">]</span> <span class="o">!=</span> <span class="n">DELETED</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">mValues</span><span class="o">[</span><span class="n">index</span><span class="o">]</span> <span class="o">=</span> <span class="n">DELETED</span><span class="o">;</span>
+            <span class="n">mGarbage</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h4 id="get操作">get操作</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java">		<span class="kd">public</span> <span class="n">E</span> <span class="nf">get</span><span class="o">(</span><span class="kt">int</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">get</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="cm">/**
+</span><span class="cm">     * Gets the Object mapped from the specified key, or the specified Object
+</span><span class="cm">     * if no such mapping has been made.
+</span><span class="cm">     */</span>
+    <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&#34;unchecked&#34;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">E</span> <span class="nf">get</span><span class="o">(</span><span class="kt">int</span> <span class="n">key</span><span class="o">,</span> <span class="n">E</span> <span class="n">valueIfKeyNotFound</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">ContainerHelpers</span><span class="o">.</span><span class="na">binarySearch</span><span class="o">(</span><span class="n">mKeys</span><span class="o">,</span> <span class="n">mSize</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">0</span> <span class="o">||</span> <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">==</span> <span class="n">DELETED</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">valueIfKeyNotFound</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">E</span><span class="o">)</span> <span class="n">mValues</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+        <span class="o">}</span>
+    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h4 id="gc">gc</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">gc</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Log.e(&#34;SparseArray&#34;, &#34;gc start with &#34; + mSize);
+</span><span class="c1"></span>
+        <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">mSize</span><span class="o">;</span>
+        <span class="kt">int</span> <span class="n">o</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>
+        <span class="kt">int</span><span class="o">[]</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">mKeys</span><span class="o">;</span>
+        <span class="n">Object</span><span class="o">[]</span> <span class="n">values</span> <span class="o">=</span> <span class="n">mValues</span><span class="o">;</span>
+
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">Object</span> <span class="n">val</span> <span class="o">=</span> <span class="n">values</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+
+            <span class="k">if</span> <span class="o">(</span><span class="n">val</span> <span class="o">!=</span> <span class="n">DELETED</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">!=</span> <span class="n">o</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">keys</span><span class="o">[</span><span class="n">o</span><span class="o">]</span> <span class="o">=</span> <span class="n">keys</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+                    <span class="n">values</span><span class="o">[</span><span class="n">o</span><span class="o">]</span> <span class="o">=</span> <span class="n">val</span><span class="o">;</span>
+                    <span class="n">values</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                <span class="o">}</span>
+
+                <span class="n">o</span><span class="o">++;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">mGarbage</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="n">mSize</span> <span class="o">=</span> <span class="n">o</span><span class="o">;</span>
+
+        <span class="c1">// Log.e(&#34;SparseArray&#34;, &#34;gc end with &#34; + mSize);
+</span><span class="c1"></span>    <span class="o">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在调用gc操作后，会对那些个DELETED状态的value统一置为null ，方便回收。同时会对index进行一次重新排序。</p>
+
+<p>我们看看有哪些操作可能会触发<strong>SparseArray的gc方法</strong> 注意哦，我这篇文章里说的gc操作，指的都是SparseArray内部的gc方法。</p>
+
+<table>
+<thead>
+<tr>
+<th align="left">put(int key, E value)</th>
+<th>size()</th>
+<th>keyAt(int index)</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><strong>valueAt(int index)</strong></td>
+<td><strong>setValueAt(int index, E value)</strong></td>
+<td><strong>indexOfKey(int key)</strong></td>
+</tr>
+
+<tr>
+<td align="left"><strong>indexOfValue(E value)</strong></td>
+<td><strong>indexOfValueByValue(E value)</strong></td>
+<td><strong>append(int key, E value)</strong></td>
+</tr>
+
+<tr>
+<td align="left"></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="总结">总结</h3>
+
+<p>android开发用如果存储key-value下的key是int型的话，建议使用SparseArray容器来操作，可以减少内存消耗。</p>
+
+<hr />
+
+<hr />
+
+<blockquote>
+<p>扫码加入我的个人微信公众号：Android开发圈 ，一起学习Android知识！！</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20181208153643197.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0OTAyNTIy,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" /></p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">     "宇宝守护神（rainyang）"</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2019-04-20
+        
+    </span>
+  </p>
+  
+  
+</div>
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    <label class="qr-code-image" for="reward">
+        <img class="image" src="https://mryangy.github.io/yangyu.github.io/images/person/Wechat_Pay.jpeg">
+        <span>wechat</span>
+      </label>
+    <label class="qr-code-image" for="reward">
+        <img class="image" src="https://mryangy.github.io/yangyu.github.io/images/person/Ali_Pay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div><footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/sparsearray/">SparseArray</a>
+          <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/hashmap_%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+            <span class="next-text nav-default">容器类源码解析系列（三）—— HashMap 源码分析(最新版)</span>
+            <span class="next-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <span id="/post/sparsearray/" class="leancloud_visitors" data-flag-title="容器类源码解析系列（四）---SparseArray分析(最新版)">
+    <span class="post-meta-item-text">文章阅读量 </span>
+    <span class="leancloud-visitors-count">1000000</span>
+    <p></p>
+  </span>
+  <div id="vcomments"></div>
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <script type="text/javascript">
+    new Valine({
+        el: '#vcomments' ,
+        appId: 'IoEJLnmuPmX0jpEuAcYs0kPt-gzGzoHsz',
+        appKey: 'waqxHtDYBNi6CNbqFzn1GOdg',
+        notify:  true ,
+        verify:  false ,
+        avatar:'mm',
+        placeholder: '说点什么吧...',
+        visitor:  true 
+    });
+  </script>
+
+
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:mryangy0423@163.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/MRYangY" class="iconfont icon-github" title="github"></a>
+  <a href="https://rainyang.me/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+      <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+  <span class="copyright-year">
+    &copy; 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">rainyang</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
