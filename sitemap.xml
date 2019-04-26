@@ -10,6 +10,13 @@
   </url>
   
   <url>
+    <loc>https://rainyang.me/post/%E4%BD%8D%E6%93%8D%E4%BD%9C/</loc>
+    <lastmod>2019-04-26T21:20:41+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://rainyang.me/post/sparsearray/</loc>
     <lastmod>2019-04-20T10:43:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -86,6 +93,13 @@
   </url>
   
   <url>
+    <loc>https://rainyang.me/categories/java/</loc>
+    <lastmod>2019-04-26T21:20:41+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://rainyang.me/tags/linkedlist/</loc>
     <lastmod>2019-04-07T15:03:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -94,7 +108,7 @@
   
   <url>
     <loc>https://rainyang.me/post/</loc>
-    <lastmod>2019-04-20T10:43:15+08:00</lastmod>
+    <lastmod>2019-04-26T21:20:41+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -123,6 +137,13 @@
   <url>
     <loc>https://rainyang.me/tags/%E8%A7%A3%E8%80%A6/</loc>
     <lastmod>2019-04-10T21:06:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://rainyang.me/tags/%E4%BD%8D%E6%93%8D%E4%BD%9C/</loc>
+    <lastmod>2019-04-26T21:20:41+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

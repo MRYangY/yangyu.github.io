@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>位操作 on RainYang&#39;s Blog</title>
+    <link>https://rainyang.me/tags/%E4%BD%8D%E6%93%8D%E4%BD%9C/</link>
+    <description>Recent content in 位操作 on RainYang&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 26 Apr 2019 21:20:41 +0800</lastBuildDate>
+    
+	<atom:link href="https://rainyang.me/tags/%E4%BD%8D%E6%93%8D%E4%BD%9C/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>说说位操作</title>
+      <link>https://rainyang.me/post/%E4%BD%8D%E6%93%8D%E4%BD%9C/</link>
+      <pubDate>Fri, 26 Apr 2019 21:20:41 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/%E4%BD%8D%E6%93%8D%E4%BD%9C/</guid>
+      <description>今天补习补习计算机基础知识，Java位操作 。 在说Java的位操作之前，要先说说原码，反码，补码 这三个概念，在学校期间，书本上有关于这个三种码</description>
+    </item>
+    
+  </channel>
+</rss>

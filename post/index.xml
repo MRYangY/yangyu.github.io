@@ -6,10 +6,19 @@
     <description>Recent content in Posts on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 20 Apr 2019 10:43:15 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 26 Apr 2019 21:20:41 +0800</lastBuildDate>
     
 	<atom:link href="https://rainyang.me/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>说说位操作</title>
+      <link>https://rainyang.me/post/%E4%BD%8D%E6%93%8D%E4%BD%9C/</link>
+      <pubDate>Fri, 26 Apr 2019 21:20:41 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/%E4%BD%8D%E6%93%8D%E4%BD%9C/</guid>
+      <description>今天补习补习计算机基础知识，Java位操作 。 在说Java的位操作之前，要先说说原码，反码，补码 这三个概念，在学校期间，书本上有关于这个三种码</description>
+    </item>
     
     <item>
       <title>容器类源码解析系列（四）---SparseArray分析(最新版)</title>
