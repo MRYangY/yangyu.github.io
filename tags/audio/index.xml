@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Audio on RainYang&#39;s Blog</title>
+    <link>https://rainyang.me/tags/audio/</link>
+    <description>Recent content in Audio on RainYang&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 27 Apr 2019 23:01:32 +0800</lastBuildDate>
+    
+	<atom:link href="https://rainyang.me/tags/audio/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Android Audio Channel切换</title>
+      <link>https://rainyang.me/post/android%E9%9F%B3%E9%A2%91channel%E5%88%87%E6%8D%A2/</link>
+      <pubDate>Sat, 27 Apr 2019 23:01:32 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/android%E9%9F%B3%E9%A2%91channel%E5%88%87%E6%8D%A2/</guid>
+      <description>Android音频Channel切换 引言 Android手机在连接耳机的时候会自动切换音频通道，从原来的手机内置麦克风传输音频数据变成通过耳机</description>
+    </item>
+    
+  </channel>
+</rss>
