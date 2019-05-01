@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>设计模式 on RainYang&#39;s Blog</title>
+    <link>https://rainyang.me/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/</link>
+    <description>Recent content in 设计模式 on RainYang&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 01 May 2019 11:02:45 +0800</lastBuildDate>
+    
+	<atom:link href="https://rainyang.me/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>你知道代理模式吗?</title>
+      <link>https://rainyang.me/post/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/</link>
+      <pubDate>Wed, 01 May 2019 11:02:45 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/</guid>
+      <description>设计模式之代理模式 引言 设计模式在程序员在开发过程中经常会用到的一些写代码的套路，有的人可能会说我在写代码的时候怎么没用过呢，其实很可能你已经</description>
+    </item>
+    
+  </channel>
+</rss>
