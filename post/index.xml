@@ -6,10 +6,19 @@
     <description>Recent content in Posts on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 09 May 2019 22:20:55 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 12 May 2019 22:11:57 +0800</lastBuildDate>
     
 	<atom:link href="https://rainyang.me/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Activity的启动模式(GIF动态演示)</title>
+      <link>https://rainyang.me/post/activity_launch_mode/</link>
+      <pubDate>Sun, 12 May 2019 22:11:57 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/activity_launch_mode/</guid>
+      <description>Activity的启动模式 &amp;lt;本文首发于我的个人微信公众号：Android开发圈 引言 关于Activity的启动模式是面试高频问题，在平时</description>
+    </item>
     
     <item>
       <title>降息降准到底是怎么一回事？</title>
