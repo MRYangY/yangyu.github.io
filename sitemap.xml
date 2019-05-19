@@ -10,6 +10,13 @@
   </url>
   
   <url>
+    <loc>https://rainyang.me/post/romantic/</loc>
+    <lastmod>2019-05-19T08:50:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://rainyang.me/post/activity_launch_mode/</loc>
     <lastmod>2019-05-12T22:11:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -158,7 +165,7 @@
   
   <url>
     <loc>https://rainyang.me/post/</loc>
-    <lastmod>2019-05-12T22:11:57+08:00</lastmod>
+    <lastmod>2019-05-19T08:50:50+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -229,6 +236,20 @@
   <url>
     <loc>https://rainyang.me/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
     <lastmod>2019-04-20T10:43:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://rainyang.me/categories/%E7%94%9F%E6%B4%BB/</loc>
+    <lastmod>2019-05-19T08:50:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://rainyang.me/tags/%E7%A4%BC%E7%89%A9/</loc>
+    <lastmod>2019-05-19T08:50:50+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

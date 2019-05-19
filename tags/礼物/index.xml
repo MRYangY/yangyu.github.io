@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>礼物 on RainYang&#39;s Blog</title>
+    <link>https://rainyang.me/tags/%E7%A4%BC%E7%89%A9/</link>
+    <description>Recent content in 礼物 on RainYang&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 19 May 2019 08:50:50 +0800</lastBuildDate>
+    
+	<atom:link href="https://rainyang.me/tags/%E7%A4%BC%E7%89%A9/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>程序员的浪漫</title>
+      <link>https://rainyang.me/post/romantic/</link>
+      <pubDate>Sun, 19 May 2019 08:50:50 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/romantic/</guid>
+      <description>程序员的浪漫 马上就到520了，各位小伙伴想好了准备什么礼物送个自己的另一半呢？还没想好的注意啦！！现在还有机会，今天给大家分享一些程序员的浪</description>
+    </item>
+    
+  </channel>
+</rss>
