@@ -6,10 +6,19 @@
     <description>Recent content in Posts on RainYang&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 19 May 2019 08:50:50 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 22 May 2019 21:03:37 +0800</lastBuildDate>
     
 	<atom:link href="https://rainyang.me/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>小程序系列之组件位置</title>
+      <link>https://rainyang.me/post/mini-program-position/</link>
+      <pubDate>Wed, 22 May 2019 21:03:37 +0800</pubDate>
+      
+      <guid>https://rainyang.me/post/mini-program-position/</guid>
+      <description>Android开发人员学习小程序系列之组件位置 引言 在Android开发中，我们设置控件的位置，首先确定目标控件是在哪种布局下的，常见的布局有</description>
+    </item>
     
     <item>
       <title>程序员的浪漫</title>
